@@ -24,6 +24,7 @@ import (
 	"github.com/1morshed1/eventflow/internal/db"
 	"github.com/1morshed1/eventflow/internal/eventstore"
 	"github.com/1morshed1/eventflow/internal/kafka"
+	"github.com/1morshed1/eventflow/internal/metrics"
 )
 
 const batchSize = 500
@@ -46,6 +47,14 @@ func main() {
 	brokers := config.EnvList("KAFKA_BROKERS", "localhost:9092")
 	pub := kafka.NewPublisher(brokers)
 	defer pub.Close()
+
+	// Expose Prometheus metrics (this service has no HTTP API of its own).
+	go func() {
+		addr := config.Env("METRICS_ADDR", ":9100")
+		if err := metrics.Serve(addr); err != nil {
+			slog.Error("metrics server", "error", err)
+		}
+	}()
 
 	pollInterval := 200 * time.Millisecond
 	slog.Info("relay started", "brokers", brokers)
@@ -102,6 +111,8 @@ func pumpOnce(ctx context.Context, store *eventstore.Store, pub *kafka.Publisher
 	if err := store.SetRelayCheckpoint(ctx, newCheckpoint); err != nil {
 		return 0, err
 	}
+	metrics.RelayPublished.Add(float64(len(events)))
+	metrics.RelayCheckpoint.Set(float64(newCheckpoint))
 	slog.Info("relayed events", "count", len(events), "checkpoint", newCheckpoint)
 	return len(events), nil
 }

@@ -71,10 +71,12 @@ Prerequisites: **Docker** (with Compose) and **jq** (for the smoke test). You do
 **not** need Go installed — all builds and tests run inside a `golang` container.
 
 ```bash
-make up        # build images and start the whole stack
-make smoke     # run the end-to-end smoke test (needs the stack up + jq)
-make logs      # tail logs from all services
-make down      # stop everything and wipe volumes
+make up            # build images and start the whole stack
+make smoke         # run the end-to-end smoke test (needs the stack up + jq)
+make loadtest      # throughput / read-latency / projection-lag benchmark
+make observability # Prometheus + Grafana (Grafana at http://localhost:13000)
+make logs          # tail logs from all services
+make down          # stop everything and wipe volumes
 ```
 
 Develop without a local Go toolchain:
@@ -158,6 +160,7 @@ Read the docs in order:
 8. [Operations: rebuilds & debugging](docs/07-operations.md)
 9. [Decision log (ADRs)](docs/08-decisions.md)
 10. [Load testing](docs/09-load-testing.md)
+11. [Observability](docs/10-observability.md)
 
 ---
 

@@ -34,9 +34,13 @@ test: ## Run unit tests
 up: ## Build images and start the whole stack
 	docker compose up --build -d
 
+.PHONY: observability
+observability: ## Start Prometheus + Grafana (Grafana http://localhost:13000, Prom http://localhost:19090)
+	docker compose --profile observability up -d prometheus grafana
+
 .PHONY: down
 down: ## Stop the stack and remove volumes
-	docker compose down -v
+	docker compose --profile observability down -v
 
 .PHONY: ps
 ps: ## Show service status

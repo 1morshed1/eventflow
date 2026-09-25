@@ -1,0 +1,57 @@
+{
+  "uid": "eventflow",
+  "title": "EventFlow",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-15m", "to": "now" },
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Write throughput (events appended /s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(eventflow_events_appended_total{job=\"command-service\"}[1m])", "legendFormat": "appended/s" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Relay published /s",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "rate(eventflow_relay_events_published_total{job=\"relay\"}[1m])", "legendFormat": "published/s" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Projection lag (events behind log head)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "eventflow_relay_checkpoint_event_id{job=\"relay\"} - on() group_right() eventflow_projector_position_event_id{job=\"projector\"}",
+          "legendFormat": "{{projector}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP request rate by route",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum by (job, route) (rate(eventflow_http_requests_total{job=~\"command-service|query-service\"}[1m]))", "legendFormat": "{{job}} {{route}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Read latency p99 (s) by route",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, job, route) (rate(eventflow_http_request_duration_seconds_bucket{job=~\"command-service|query-service\"}[5m])))",
+          "legendFormat": "{{job}} {{route}}"
+        }
+      ]
+    }
+  ]
+}

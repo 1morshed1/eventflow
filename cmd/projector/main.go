@@ -17,6 +17,7 @@ import (
 	"github.com/1morshed1/eventflow/internal/config"
 	"github.com/1morshed1/eventflow/internal/db"
 	"github.com/1morshed1/eventflow/internal/kafka"
+	"github.com/1morshed1/eventflow/internal/metrics"
 	"github.com/1morshed1/eventflow/internal/projection"
 )
 
@@ -59,6 +60,13 @@ func main() {
 		projection.RevenueProjector{},
 		projection.HistoryProjector{},
 	}
+
+	go func() {
+		addr := config.Env("METRICS_ADDR", ":9100")
+		if err := metrics.Serve(addr); err != nil {
+			slog.Error("metrics server", "error", err)
+		}
+	}()
 
 	var wg sync.WaitGroup
 	runCtx, cancelAll := context.WithCancel(ctx)

@@ -12,6 +12,7 @@ import (
 
 	"github.com/1morshed1/eventflow/internal/eventstore"
 	"github.com/1morshed1/eventflow/internal/kafka"
+	"github.com/1morshed1/eventflow/internal/metrics"
 )
 
 // Projector builds one read model. Name is used both as the Kafka consumer group
@@ -95,5 +96,11 @@ func (r *Runner) handle(ctx context.Context, e eventstore.Event) error {
 		return fmt.Errorf("advance checkpoint: %w", err)
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	// Only record progress after the commit succeeds, so metrics never over-count.
+	metrics.ProjectorProcessed.WithLabelValues(r.proj.Name()).Inc()
+	metrics.ProjectorPosition.WithLabelValues(r.proj.Name()).Set(float64(e.ID))
+	return nil
 }

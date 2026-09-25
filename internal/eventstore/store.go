@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/1morshed1/eventflow/internal/metrics"
 )
 
 // ErrVersionConflict is returned by Append when another writer already wrote the
@@ -80,6 +82,7 @@ func (s *Store) Append(ctx context.Context, events []Event) error {
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("commit tx: %w", err)
 	}
+	metrics.EventsAppended.Add(float64(len(events)))
 	return nil
 }
 

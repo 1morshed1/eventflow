@@ -25,6 +25,7 @@ import (
 	"github.com/1morshed1/eventflow/internal/domain/order"
 	"github.com/1morshed1/eventflow/internal/eventstore"
 	"github.com/1morshed1/eventflow/internal/httpx"
+	"github.com/1morshed1/eventflow/internal/metrics"
 )
 
 func main() {
@@ -54,14 +55,15 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("GET /metrics", metrics.Handler())
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
-	mux.HandleFunc("GET /orders/{id}", h.getOrder)
-	mux.HandleFunc("GET /orders/{id}/history", h.getHistory)
-	mux.HandleFunc("GET /orders/{id}/at", h.getOrderAt)
-	mux.HandleFunc("GET /customers/{id}/orders", h.listCustomerOrders)
-	mux.HandleFunc("GET /admin/revenue", h.getRevenue)
+	mux.HandleFunc("GET /orders/{id}", metrics.Middleware("GET /orders/{id}", h.getOrder))
+	mux.HandleFunc("GET /orders/{id}/history", metrics.Middleware("GET /orders/{id}/history", h.getHistory))
+	mux.HandleFunc("GET /orders/{id}/at", metrics.Middleware("GET /orders/{id}/at", h.getOrderAt))
+	mux.HandleFunc("GET /customers/{id}/orders", metrics.Middleware("GET /customers/{id}/orders", h.listCustomerOrders))
+	mux.HandleFunc("GET /admin/revenue", metrics.Middleware("GET /admin/revenue", h.getRevenue))
 
 	addr := config.Env("HTTP_ADDR", ":8081")
 	srv := &http.Server{Addr: addr, Handler: httpx.Logging(mux)}

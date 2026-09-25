@@ -23,6 +23,7 @@ import (
 	"github.com/1morshed1/eventflow/internal/domain/order"
 	"github.com/1morshed1/eventflow/internal/eventstore"
 	"github.com/1morshed1/eventflow/internal/httpx"
+	"github.com/1morshed1/eventflow/internal/metrics"
 )
 
 func main() {
@@ -48,16 +49,19 @@ func main() {
 	h := &handler{svc: svc}
 
 	mux := http.NewServeMux()
+	mux.Handle("GET /metrics", metrics.Handler())
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		httpx.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
-	mux.HandleFunc("POST /orders", h.createOrder)
-	mux.HandleFunc("POST /orders/{id}/items", h.addItem)
-	mux.HandleFunc("DELETE /orders/{id}/items/{productID}", h.removeItem)
-	mux.HandleFunc("POST /orders/{id}/confirm", h.confirm)
-	mux.HandleFunc("POST /orders/{id}/cancel", h.cancel)
-	mux.HandleFunc("POST /orders/{id}/pay", h.pay)
-	mux.HandleFunc("POST /orders/{id}/ship", h.ship)
+	// Each route is wrapped so Prometheus records count + latency. The route label
+	// is the pattern (not the concrete path) to keep cardinality low.
+	mux.HandleFunc("POST /orders", metrics.Middleware("POST /orders", h.createOrder))
+	mux.HandleFunc("POST /orders/{id}/items", metrics.Middleware("POST /orders/{id}/items", h.addItem))
+	mux.HandleFunc("DELETE /orders/{id}/items/{productID}", metrics.Middleware("DELETE /orders/{id}/items/{productID}", h.removeItem))
+	mux.HandleFunc("POST /orders/{id}/confirm", metrics.Middleware("POST /orders/{id}/confirm", h.confirm))
+	mux.HandleFunc("POST /orders/{id}/cancel", metrics.Middleware("POST /orders/{id}/cancel", h.cancel))
+	mux.HandleFunc("POST /orders/{id}/pay", metrics.Middleware("POST /orders/{id}/pay", h.pay))
+	mux.HandleFunc("POST /orders/{id}/ship", metrics.Middleware("POST /orders/{id}/ship", h.ship))
 
 	addr := config.Env("HTTP_ADDR", ":8080")
 	srv := &http.Server{Addr: addr, Handler: httpx.Logging(mux)}
