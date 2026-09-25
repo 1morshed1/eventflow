@@ -16,6 +16,7 @@ import (
 
 	"github.com/1morshed1/eventflow/internal/config"
 	"github.com/1morshed1/eventflow/internal/db"
+	"github.com/1morshed1/eventflow/internal/kafka"
 	"github.com/1morshed1/eventflow/internal/projection"
 )
 
@@ -40,6 +41,13 @@ func main() {
 
 	brokers := config.EnvList("KAFKA_BROKERS", "localhost:9092")
 	topic := config.Env("ORDER_TOPIC", "order-events")
+
+	// Create the topic before any consumer joins, avoiding the zero-partition
+	// startup race (see kafka.EnsureTopics).
+	if err := kafka.EnsureTopics(ctx, brokers, topic); err != nil {
+		slog.Error("ensure topics", "error", err)
+		os.Exit(1)
+	}
 
 	// A rebuild suffix lets you replay from scratch: set REBUILD=v2 to start fresh
 	// consumer groups and checkpoints without disturbing the running ones. You would

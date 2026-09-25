@@ -7,12 +7,49 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	"github.com/1morshed1/eventflow/internal/eventstore"
 	kgo "github.com/segmentio/kafka-go"
 )
+
+// EnsureTopics creates the given topics (1 partition, replication 1) if they do
+// not already exist.
+//
+// Why this matters: a consumer group that joins BEFORE its topic exists is
+// assigned zero partitions and, without partition-change watching, never picks the
+// topic up when it later appears - it sits idle forever. Creating topics up front
+// (and enabling WatchPartitionChanges on the reader) removes that startup race.
+func EnsureTopics(ctx context.Context, brokers []string, topics ...string) error {
+	conn, err := kgo.DialContext(ctx, "tcp", brokers[0])
+	if err != nil {
+		return fmt.Errorf("dial kafka: %w", err)
+	}
+	defer conn.Close()
+
+	controller, err := conn.Controller()
+	if err != nil {
+		return fmt.Errorf("get controller: %w", err)
+	}
+	ctrlConn, err := kgo.DialContext(ctx, "tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
+	if err != nil {
+		return fmt.Errorf("dial controller: %w", err)
+	}
+	defer ctrlConn.Close()
+
+	configs := make([]kgo.TopicConfig, 0, len(topics))
+	for _, t := range topics {
+		configs = append(configs, kgo.TopicConfig{Topic: t, NumPartitions: 1, ReplicationFactor: 1})
+	}
+	if err := ctrlConn.CreateTopics(configs...); err != nil && !errors.Is(err, kgo.TopicAlreadyExists) {
+		return fmt.Errorf("create topics: %w", err)
+	}
+	return nil
+}
 
 // TopicForAggregate maps an aggregate type to its Kafka topic. Splitting by
 // aggregate type lets consumers subscribe only to what they care about.
@@ -95,6 +132,11 @@ func NewConsumer(brokers []string, topic, groupID string) *Consumer {
 			MinBytes:    1,
 			MaxBytes:    10e6,
 			MaxWait:     500 * time.Millisecond,
+			// Re-trigger a group rebalance when the topic's partitions change (e.g.
+			// the topic is created after the consumer starts), so we never sit idle
+			// with zero partitions assigned.
+			WatchPartitionChanges: true,
+			PartitionWatchInterval: 2 * time.Second,
 		}),
 	}
 }
