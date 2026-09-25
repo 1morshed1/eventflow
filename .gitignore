@@ -1,0 +1,22 @@
+# Binaries
+/bin/
+*.exe
+*.out
+
+# Go build/test cache mounted from Docker
+.gocache/
+.gomodcache/
+
+# Env / secrets
+*.env
+!*.example.env
+
+# OS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+
+# Local data volumes (if ever bind-mounted)
+/data/

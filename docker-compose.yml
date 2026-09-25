@@ -1,0 +1,141 @@
+# EventFlow - full local stack.
+#
+# Two Postgres instances make the CQRS write/read split physical:
+#   eventstore-db  -> the event store (source of truth, write side)
+#   readmodel-db   -> the denormalized read models (query side)
+# Kafka carries events from the relay to the projectors. Everything runs locally;
+# no cloud services required.
+
+name: eventflow
+
+services:
+  # ---- infrastructure ----
+  eventstore-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: eventflow
+      POSTGRES_PASSWORD: eventflow
+      POSTGRES_DB: eventstore
+    ports:
+      - "5432:5432" # host access for psql/debugging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventflow -d eventstore"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  readmodel-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: eventflow
+      POSTGRES_PASSWORD: eventflow
+      POSTGRES_DB: readmodel
+    ports:
+      - "5433:5432" # different host port, same internal 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eventflow -d readmodel"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    image: apache/kafka:3.7.0
+    ports:
+      - "9092:9092"
+    environment:
+      # Single-node KRaft (no ZooKeeper). This node is both broker and controller.
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ---- application services ----
+  command-service:
+    build:
+      context: .
+      args:
+        SERVICE: command-service
+    environment:
+      EVENTSTORE_DSN: postgres://eventflow:eventflow@eventstore-db:5432/eventstore?sslmode=disable
+      HTTP_ADDR: ":8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      eventstore-db:
+        condition: service_healthy
+
+  relay:
+    build:
+      context: .
+      args:
+        SERVICE: relay
+    environment:
+      EVENTSTORE_DSN: postgres://eventflow:eventflow@eventstore-db:5432/eventstore?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      eventstore-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      command-service:
+        condition: service_started
+
+  projector:
+    build:
+      context: .
+      args:
+        SERVICE: projector
+    environment:
+      READMODEL_DSN: postgres://eventflow:eventflow@readmodel-db:5432/readmodel?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+      ORDER_TOPIC: order-events
+    depends_on:
+      readmodel-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  query-service:
+    build:
+      context: .
+      args:
+        SERVICE: query-service
+    environment:
+      READMODEL_DSN: postgres://eventflow:eventflow@readmodel-db:5432/readmodel?sslmode=disable
+      EVENTSTORE_DSN: postgres://eventflow:eventflow@eventstore-db:5432/eventstore?sslmode=disable
+      HTTP_ADDR: ":8081"
+    ports:
+      - "8081:8081"
+    depends_on:
+      readmodel-db:
+        condition: service_healthy
+      eventstore-db:
+        condition: service_healthy
+
+  saga:
+    build:
+      context: .
+      args:
+        SERVICE: saga
+    environment:
+      COMMAND_SERVICE_URL: http://command-service:8080
+      HTTP_ADDR: ":8082"
+    ports:
+      - "8082:8082"
+    depends_on:
+      command-service:
+        condition: service_started
