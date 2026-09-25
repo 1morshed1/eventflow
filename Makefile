@@ -38,6 +38,10 @@ up: ## Build images and start the whole stack
 down: ## Stop the stack and remove volumes
 	docker compose down -v
 
+.PHONY: ps
+ps: ## Show service status
+	docker compose ps
+
 .PHONY: logs
 logs: ## Tail logs from all services
 	docker compose logs -f
