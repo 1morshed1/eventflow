@@ -157,6 +157,7 @@ Read the docs in order:
 7. [Temporal queries & snapshots](docs/06-temporal-queries-and-snapshots.md)
 8. [Operations: rebuilds & debugging](docs/07-operations.md)
 9. [Decision log (ADRs)](docs/08-decisions.md)
+10. [Load testing](docs/09-load-testing.md)
 
 ---
 

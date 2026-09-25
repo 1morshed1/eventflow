@@ -49,3 +49,14 @@ logs: ## Tail logs from all services
 .PHONY: smoke
 smoke: ## Run the end-to-end smoke test against a running stack
 	./scripts/smoke.sh
+
+.PHONY: loadtest
+loadtest: ## Run the load test against a running stack (throughput, latency, lag)
+	docker run --rm --network eventflow_default \
+		-v "$(PWD)":/app -w /app \
+		-v "$(PWD)/.gocache":/root/.cache/go-build \
+		-v "$(PWD)/.gomodcache":/go/pkg/mod \
+		-e COMMAND_URL=http://command-service:8080 \
+		-e QUERY_URL=http://query-service:8081 \
+		-e DURATION_SEC=10 -e WORKERS=32 -e LAG_SAMPLES=40 \
+		$(GO_IMAGE) go run -buildvcs=false ./cmd/loadtest
