@@ -9,8 +9,7 @@ that ever happened to it (`OrderCreated`, `ItemAdded`, `PaymentReceived`, …) a
 derives current state by replaying those events. Reads are served from separate,
 denormalized **read models** kept up to date by projectors consuming a Kafka stream.
 
-This repo is meant to be **read and learned from**. The code is heavily commented,
-and the [`docs/`](docs/) folder explains every pattern and every design decision.
+The code is heavily commented, and the [`docs/`](docs/) folder explains every pattern and every design decision.
 
 ---
 
