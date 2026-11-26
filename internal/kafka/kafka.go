@@ -135,7 +135,7 @@ func NewConsumer(brokers []string, topic, groupID string) *Consumer {
 			// Re-trigger a group rebalance when the topic's partitions change (e.g.
 			// the topic is created after the consumer starts), so we never sit idle
 			// with zero partitions assigned.
-			WatchPartitionChanges: true,
+			WatchPartitionChanges:  true,
 			PartitionWatchInterval: 2 * time.Second,
 		}),
 	}

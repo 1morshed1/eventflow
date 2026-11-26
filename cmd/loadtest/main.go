@@ -1,9 +1,9 @@
-// Load tester for EventFlow. Measures the three numbers the plan asks for:
+// Load tester for EventFlow. Measures the three numbers the spec asks for:
 //
 //  1. write throughput   - commands/sec and events/sec into the event store,
 //  2. read latency       - p50/p95/p99 of GET /orders/{id} from the read model,
 //  3. projection lag     - delay between a write committing and the read model
-//                          reflecting it (write -> relay -> Kafka -> projector).
+//     reflecting it (write -> relay -> Kafka -> projector).
 //
 // Stdlib only. Run it on the compose network so it can reach the internal service
 // names; see docs/09-load-testing.md for the exact command.

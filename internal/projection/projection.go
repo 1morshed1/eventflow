@@ -60,6 +60,7 @@ func (r *Runner) Run(ctx context.Context) error {
 //   - if the event id is not newer than the checkpoint, skip it (already applied),
 //   - otherwise apply it and advance the checkpoint,
 //   - commit.
+//
 // Because the read-model write and the checkpoint update are in one transaction, a
 // redelivered event can never be applied twice.
 func (r *Runner) handle(ctx context.Context, e eventstore.Event) error {

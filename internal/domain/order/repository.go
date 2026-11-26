@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/1morshed1/eventflow/internal/eventstore"
+	"github.com/google/uuid"
 )
 
 // snapshotEvery controls how often we persist a snapshot. Replaying up to this

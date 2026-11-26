@@ -55,7 +55,7 @@ their databases. It is a coordinator, not a back door.
 
 ## Watch compensation happen
 
-`PlaceOrderInput.FailPayment` forces `process_payment` to fail. This is the plan's
+`PlaceOrderInput.FailPayment` forces `process_payment` to fail. This is the spec's
 load-test scenario — "kill the payment service mid-saga and verify inventory is
 released" — made reproducible:
 

@@ -69,7 +69,7 @@ per-service packages. Job-scoping in queries is the pragmatic fix here.
 
 ## What's intentionally left as next steps
 
-The plan lists a fuller stack (Jaeger, Loki). Metrics are the highest-leverage first
+The spec lists a fuller stack (Jaeger, Loki). Metrics are the highest-leverage first
 layer; the rest slot in cleanly:
 
 - **Tracing (Jaeger / OpenTelemetry).** Propagate a `trace_id` through the event

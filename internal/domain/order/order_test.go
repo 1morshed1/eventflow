@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/1morshed1/eventflow/internal/eventstore"
+	"github.com/google/uuid"
 )
 
 // mkEvent is a tiny helper to build an event with a marshaled payload.

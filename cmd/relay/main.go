@@ -87,6 +87,7 @@ func main() {
 //  2. read events after it,
 //  3. publish to Kafka,
 //  4. only then advance the checkpoint.
+//
 // If we crash after step 3 but before step 4, those events are published again on
 // restart (at-least-once) - never lost.
 func pumpOnce(ctx context.Context, store *eventstore.Store, pub *kafka.Publisher) (int, error) {

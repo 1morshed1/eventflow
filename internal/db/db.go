@@ -1,6 +1,6 @@
 // Package db holds small helpers for connecting to Postgres and running the SQL
 // migrations at startup. It is intentionally tiny - no ORM, no migration
-// framework - so the mechanics stay visible for learning.
+// framework - so the mechanics stay visible.
 package db
 
 import (

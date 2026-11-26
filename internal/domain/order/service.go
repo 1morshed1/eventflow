@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/1morshed1/eventflow/internal/eventstore"
+	"github.com/google/uuid"
 )
 
 // Domain errors returned by command handlers. They map to HTTP 4xx in the API
 // layer - they are expected business outcomes, not bugs.
 var (
-	ErrOrderNotFound     = errors.New("order not found")
-	ErrOrderNotEditable  = errors.New("order is not editable")
-	ErrTooManyItems      = errors.New("order has too many items")
-	ErrEmptyOrder        = errors.New("cannot confirm an empty order")
-	ErrInvalidState      = errors.New("operation not allowed in current state")
+	ErrOrderNotFound       = errors.New("order not found")
+	ErrOrderNotEditable    = errors.New("order is not editable")
+	ErrTooManyItems        = errors.New("order has too many items")
+	ErrEmptyOrder          = errors.New("cannot confirm an empty order")
+	ErrInvalidState        = errors.New("operation not allowed in current state")
 	ErrConcurrencyConflict = errors.New("concurrency conflict, please retry")
 )
 

@@ -1,6 +1,6 @@
 # 09 — Load Testing
 
-The plan sets three targets. `cmd/loadtest/main.go` measures each. Run it against a
+The spec sets three targets. `cmd/loadtest/main.go` measures each. Run it against a
 live stack:
 
 ```bash
@@ -39,7 +39,7 @@ Your numbers will vary with hardware. The point is the *shape* and how to read i
 
 ### Write throughput: ~5.7k events/sec vs 10k target
 
-The plan targets 10,000+ events/sec; a single Postgres on a laptop through the HTTP
+The spec targets 10,000+ events/sec; a single Postgres on a laptop through the HTTP
 API hits ~5.7k. Where the ceiling comes from and how you'd raise it:
 
 - **Every command does a load (replay) + append.** Reads compete with writes on the
@@ -57,7 +57,7 @@ API hits ~5.7k. Where the ceiling comes from and how you'd raise it:
 Reads hit a single denormalized, indexed table — inherently fast (p50 = 2.6ms). The
 p99 tail comes from:
 
-- **No read replicas / no cache** in the demo. The plan's <10ms p99 assumes a tuned,
+- **No read replicas / no cache** in the demo. The spec's <10ms p99 assumes a tuned,
   possibly cached read tier.
 - **Client-side contention** in the load tool (32 concurrent goroutines sharing one
   process) inflates the tail.
@@ -82,7 +82,7 @@ first-class SLO (checkpoint distance behind the log head).
 
 ## Saga compensation under failure
 
-The plan also asks to "kill the payment service mid-saga and verify inventory is
+The spec also asks to "kill the payment service mid-saga and verify inventory is
 released." That path is deterministic and covered by the smoke test and a unit test —
 see [05-saga](05-saga.md) and run:
 

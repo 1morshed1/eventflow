@@ -1,5 +1,8 @@
 # EventFlow — Event-Sourced E-Commerce with CQRS
 
+[![CI](https://github.com/1morshed1/eventflow/actions/workflows/ci.yml/badge.svg)](https://github.com/1morshed1/eventflow/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 EventFlow is a small but complete e-commerce backend built on **event sourcing**
 and **CQRS**. Instead of storing an order as a mutable row, it stores every event
 that ever happened to it (`OrderCreated`, `ItemAdded`, `PaymentReceived`, …) and
@@ -184,3 +187,7 @@ migrations/          SQL for the event store and the read model
 scripts/smoke.sh     end-to-end test
 docs/                the learning material
 ```
+
+## License
+
+[MIT](LICENSE)

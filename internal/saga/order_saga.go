@@ -30,7 +30,7 @@ type PlaceOrderInput struct {
 	Amount  int64 // cents to charge
 	// FailPayment forces the payment step to fail. It exists so you can test that
 	// compensation runs (inventory is released) - see the load-testing section of
-	// the plan: "kill the payment service mid-saga and verify inventory is released".
+	// the spec: "kill the payment service mid-saga and verify inventory is released".
 	FailPayment bool
 }
 

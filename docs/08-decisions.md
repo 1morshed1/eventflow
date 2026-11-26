@@ -73,7 +73,7 @@ commit and offset commit could reapply. Our own checkpoint closes that gap.
 databases. It also mirrors how you'd scale them independently in production
 (read replicas for the query side).
 
-**Rejected.** One instance with two schemas (the plan's cheaper option). Fine in
+**Rejected.** One instance with two schemas (the spec's cheaper option). Fine in
 practice, but blurs the separation this project is trying to teach.
 
 ---
@@ -97,7 +97,7 @@ across the business logic.
 services via HTTP. A `fail_payment` flag forces the failure path.
 
 **Why.** Orchestration keeps the whole flow *and its rollback* readable in one place —
-best for learning. The fail switch makes compensation reproducible (the plan's
+easiest to reason about. The fail switch makes compensation reproducible (the spec's
 "kill payment mid-saga" test). See [05](05-saga.md).
 
 **Rejected.** Choreography (services reacting to events) — more decoupled but the flow
@@ -120,7 +120,7 @@ cents avoid rounding bugs. A classic, non-negotiable correctness choice.
 required on the host.
 
 **Why.** Reproducible builds, zero host setup, matches the "everything runs in Docker
-Compose locally" goal from the plan.
+Compose locally" goal from the spec.
 
 ---
 

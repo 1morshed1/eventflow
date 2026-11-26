@@ -15,13 +15,13 @@ const AggregateType = "Order"
 // once an event type is in production its shape should only ever be extended in a
 // backward-compatible way (add fields, never repurpose them).
 const (
-	EventOrderCreated   = "OrderCreated"
-	EventItemAdded      = "ItemAdded"
-	EventItemRemoved    = "ItemRemoved"
-	EventOrderConfirmed = "OrderConfirmed"
+	EventOrderCreated    = "OrderCreated"
+	EventItemAdded       = "ItemAdded"
+	EventItemRemoved     = "ItemRemoved"
+	EventOrderConfirmed  = "OrderConfirmed"
 	EventPaymentReceived = "PaymentReceived"
-	EventOrderShipped   = "OrderShipped"
-	EventOrderCancelled = "OrderCancelled"
+	EventOrderShipped    = "OrderShipped"
+	EventOrderCancelled  = "OrderCancelled"
 )
 
 // Order status values. The aggregate is a small state machine; these are its states.
@@ -56,8 +56,8 @@ type ItemRemovedData struct {
 
 // PaymentReceivedData records a successful payment.
 type PaymentReceivedData struct {
-	Amount        int64  `json:"amount"` // cents
-	PaymentRef    string `json:"payment_ref"`
+	Amount     int64  `json:"amount"` // cents
+	PaymentRef string `json:"payment_ref"`
 }
 
 // OrderShippedData records shipment with a tracking number.
